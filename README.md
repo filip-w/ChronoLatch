@@ -1,26 +1,26 @@
 # ChronoLatch
 
-ChronoLatch is a solar-powered release-only gate opener and timed relay
-controller for feeding horses and other low-power automation tasks.
+![ChronoLatch logo](assets/chronolatch-logo.png)
 
-The field design target is deliberately conservative: at a scheduled feed time
-the controller releases a latch, and the gate opens by spring tension, gravity,
-an offset hinge, or a low-force open-only actuator. The system does not
-automatically power-close a gate around animals. The controller can read and set
-both the RTC clock and the daily opening time over USB serial, and it only holds
-the relay closed for 3 seconds.
+ChronoLatch is a solar-powered, release-only gate latch timer for horse feeding
+and other low-power automation.
+
+At feed time, the controller closes a relay for 3 seconds so spring tension,
+gravity, an offset hinge, or a low-force open-only actuator can release the
+gate. It never power-closes around animals. USB serial reads and sets the RTC
+clock and daily opening time.
 
 ![First ChronoLatch prototype](FirstPrototype.jpg)
 
-### Prototype
+### Prototype Hardware
 
-Use this path to test scheduling and relay behavior on the bench.
+Bench prototype modules:
 
+- Arduino Nano or Pro Mini with ChronoLatch firmware.
 - DS3231 RTC module.
-- Arduino Nano or Pro Mini.
-- CN3065 charger, 6 V solar cell, and one 18650 Li-ion cell.
-- MT3608 boost converter for 5 V electronics.
-- 1-channel 5 V relay module.
+- CN3065 charger, 6 V solar panel, and protected 18650 Li-ion cell.
+- MT3608 boost converter for the 5 V rail.
+- 1-channel 5 V relay module for the 3 second latch pulse.
 
 ### Bill of Materials (BOM)
 
@@ -33,7 +33,7 @@ Use this path to test scheduling and relay behavior on the bench.
 | Protected 18650 Li-ion battery | 1 | Rechargeable power storage | TBD |
 | 1-channel 5 V relay module | 1 | Switched output control | [AliExpress](https://s.click.aliexpress.com/e/_c43xkIFb) |
 
-### Overview module schematic
+### Module Schematic
 
 ```mermaid
 flowchart TB
@@ -69,43 +69,43 @@ flowchart TB
 | Power rail | MT3608 `5 V` output to Arduino, RTC, and relay module |
 | Gate output | Relay contacts switch the latch release circuit |
 
-### Serial troubleshooting
+### Serial Troubleshooting
 
-If a minimal serial sketch works but ChronoLatch prints nothing, check where the
-boot log stops:
+If a minimal serial sketch works but ChronoLatch prints nothing, check the boot
+log:
 
 - `ChronoLatch booting...` means USB serial is alive.
-- `Checking RTC...` followed by no ready message points at the DS3231/I2C bus.
-  Check RTC power, ground, `SDA -> A4`, `SCL -> A5`, and pullups.
+- `Checking RTC...` with no ready message points at the DS3231/I2C bus. Check
+  RTC power, ground, `SDA -> A4`, `SCL -> A5`, and pullups.
 - `I2C timeout while checking RTC` means the Arduino Wire timeout recovered from
   a stuck I2C transaction.
 
-The firmware sleeps after the initial setup window to save power. Press reset or
-open the serial monitor immediately after upload when testing commands.
+The firmware sleeps after setup to save power. Press reset or open the serial
+monitor immediately after upload when testing commands.
 
-### Power budget
+### Power Budget
 
-Prototype measurements after removing the Arduino Nano power LED and relay board
-VCC LED:
+Measurements after removing the Arduino Nano power LED and relay board VCC LED:
 
-- Sleeping controller load: about 14 mA.
-- Relay active load: about 40 mA.
+- Sleep load: about 14 mA.
+- MCU awake load: about 40 mA.
+- Relay closed for the 3 second latch pulse: about 190 mA.
+- Firmware cycle: 8 seconds asleep, then about 2 seconds awake for serial.
 - Battery: 3500 mAh protected 18650 Li-ion cell.
 - Solar panel: mini 6 V, 210 mA, 1.25 W.
 
-With one 3 second release per day, the relay pulse adds very little to the daily
-energy use. The sleeping controller dominates the budget:
+The 8 s sleep / 2 s wake cycle averages roughly 19 mA before the relay pulse:
 
-- Daily use: about 336 mAh, or 1.24 Wh from a nominal 3.7 V cell.
-- Battery-only runtime: roughly 250 hours, or 10.4 days, before allowing for
+- Daily use: about 461 mAh, or 1.7 Wh from a nominal 3.7 V cell.
+- Battery-only runtime: roughly 180 hours, or 7.5 days, before allowing for
   cold weather, battery age, converter losses, and cutoff voltage.
+- One 3 second relay pulse adds about 0.16 mAh per opening.
 
-Cloudy-day prototype measurement while the MCU was sleeping:
+Cloudy-day measurement while the MCU was sleeping:
 
 ![ChronoLatch prototype cloudy-day battery current measurement](CurrentMeasurement.jpg)
 
-With the solar panel connected through the charger, the battery-side current was
-about 25 mA into the battery on a cloudy day. At that charge rate, the panel
-would put back about 25 mAh per hour of similar light. Replacing one full day of
-sleeping-controller use would therefore take about 13-14 hours at this cloudy
-rate, while brighter sun should improve the margin.
+With the solar panel connected through the charger, battery-side current was
+about 25 mA into the battery, or about 25 mAh per hour of similar cloudy light.
+Replacing one full day of controller use would take about 18-19 hours at this
+rate; brighter sun improves the margin.
