@@ -24,6 +24,7 @@
 const byte RELAY_PIN = 2;
 const bool RELAY_ACTIVE_LOW = true;
 const unsigned long RELAY_MS = 10000UL;
+const unsigned long I2C_TIMEOUT_US = 25000UL;
 const unsigned long BOOT_SERIAL_WINDOW_MS = 30000UL;
 const unsigned long WAKE_SERIAL_WINDOW_MS = 2000UL;
 const unsigned long SERIAL_COMMAND_WINDOW_MS = 30000UL;
@@ -111,6 +112,15 @@ void clearLastOpenDate() {
   EEPROM.update(EEPROM_LAST_DAY, 0);
 }
 
+bool requireRtc() {
+  if (rtcReady) {
+    return true;
+  }
+
+  Serial.println(F("RTC not available; check DS3231 power/SDA/SCL"));
+  return false;
+}
+
 void pulseRelay() {
   Serial.println(F("Relay closed"));
   digitalWrite(RELAY_PIN, relayOnLevel());
@@ -159,13 +169,17 @@ void handleCommand(String line) {
   stayAwakeUntil = millis() + SERIAL_COMMAND_WINDOW_MS;
 
   if (line == "TIME") {
-    printTime(rtc.now());
+    if (requireRtc()) {
+      printTime(rtc.now());
+    }
   } else if (line.startsWith("SETTIME ")) {
     int y, mo, d, h, mi, s;
     if (sscanf(line.c_str(), "SETTIME %d-%d-%d %d:%d:%d", &y, &mo, &d, &h, &mi, &s) == 6) {
-      rtc.adjust(DateTime(y, mo, d, h, mi, s));
-      clearLastOpenDate();
-      Serial.println(F("Clock set"));
+      if (requireRtc()) {
+        rtc.adjust(DateTime(y, mo, d, h, mi, s));
+        clearLastOpenDate();
+        Serial.println(F("Clock set"));
+      }
     } else {
       Serial.println(F("Use: SETTIME YYYY-MM-DD HH:MM:SS"));
     }
@@ -204,10 +218,21 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
 
   Serial.begin(9600);
+  Serial.println(F("ChronoLatch booting..."));
   Wire.begin();
+#if defined(WIRE_HAS_TIMEOUT)
+  Wire.setWireTimeout(I2C_TIMEOUT_US, true);
+#endif
   loadSettings();
 
+  Serial.println(F("Checking RTC..."));
   rtcReady = rtc.begin();
+#if defined(WIRE_HAS_TIMEOUT)
+  if (Wire.getWireTimeoutFlag()) {
+    Wire.clearWireTimeoutFlag();
+    Serial.println(F("I2C timeout while checking RTC"));
+  }
+#endif
   if (!rtcReady) {
     Serial.println(F("RTC not found"));
   } else if (rtc.lostPower()) {

@@ -69,6 +69,20 @@ flowchart TB
 | Power rail | MT3608 `5 V` output to Arduino, RTC, and relay module |
 | Gate output | Relay contacts switch the latch release circuit |
 
+### Serial troubleshooting
+
+If a minimal serial sketch works but ChronoLatch prints nothing, check where the
+boot log stops:
+
+- `ChronoLatch booting...` means USB serial is alive.
+- `Checking RTC...` followed by no ready message points at the DS3231/I2C bus.
+  Check RTC power, ground, `SDA -> A4`, `SCL -> A5`, and pullups.
+- `I2C timeout while checking RTC` means the Arduino Wire timeout recovered from
+  a stuck I2C transaction.
+
+The firmware sleeps after the initial setup window to save power. Press reset or
+open the serial monitor immediately after upload when testing commands.
+
 ### Power budget
 
 After removing the Arduino Nano power LED and relay board VCC LED:
