@@ -1,6 +1,6 @@
 # ChronoLatch
 
-![ChronoLatch logo](assets/chronolatch-logo.png)
+<img src="assets/chronolatch-logo.png" alt="ChronoLatch logo" width="420">
 
 ChronoLatch is a solar-powered, release-only gate latch timer for horse feeding
 and other low-power automation.
