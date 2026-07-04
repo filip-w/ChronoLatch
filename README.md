@@ -108,4 +108,9 @@ Cloudy-day measurement while the MCU was sleeping:
 With the solar panel connected through the charger, battery-side current was
 about 25 mA into the battery, or about 25 mAh per hour of similar cloudy light.
 Replacing one full day of controller use would take about 18-19 hours at this
-rate; brighter sun improves the margin.
+rate.
+
+When the sun came out, battery-side charging current rose to about 125 mA, or
+about 125 mAh per hour of similar sunlight. Replacing one full day of controller
+use would take roughly 3.7 hours at this rate, before allowing for panel angle,
+weather changes, battery state, and charger behavior.
