@@ -23,7 +23,7 @@
 
 const byte RELAY_PIN = 2;
 const bool RELAY_ACTIVE_LOW = true;
-const unsigned long RELAY_MS = 10000UL;
+const unsigned long RELAY_MS = 3000UL;
 const unsigned long I2C_TIMEOUT_US = 25000UL;
 const unsigned long BOOT_SERIAL_WINDOW_MS = 30000UL;
 const unsigned long WAKE_SERIAL_WINDOW_MS = 2000UL;

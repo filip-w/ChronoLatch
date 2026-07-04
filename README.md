@@ -8,7 +8,7 @@ the controller releases a latch, and the gate opens by spring tension, gravity,
 an offset hinge, or a low-force open-only actuator. The system does not
 automatically power-close a gate around animals. The controller can read and set
 both the RTC clock and the daily opening time over USB serial, and it only holds
-the relay closed for 10 seconds.
+the relay closed for 3 seconds.
 
 ![First ChronoLatch prototype](FirstPrototype.jpg)
 
@@ -44,7 +44,7 @@ flowchart TB
     Nano["Arduino Nano<br/>ChronoLatch firmware"]
     RTC["DS3231 RTC<br/>timekeeping module"]
     Relay["1-channel 5 V relay<br/>input on D2"]
-    Latch["Gate latch release<br/>10 second pulse"]
+    Latch["Gate latch release<br/>3 second pulse"]
     USB["USB serial<br/>setup and status"]
 
     Solar -->|"charge input"| Charger
@@ -85,17 +85,27 @@ open the serial monitor immediately after upload when testing commands.
 
 ### Power budget
 
-After removing the Arduino Nano power LED and relay board VCC LED:
+Prototype measurements after removing the Arduino Nano power LED and relay board
+VCC LED:
 
-- Sleep current: about 14 mA.
-- Awake with relay active: about 40 mA.
-- Battery: 3500 mAh 18650 Li-ion cell.
+- Sleeping controller load: about 14 mA.
+- Relay active load: about 40 mA.
+- Battery: 3500 mAh protected 18650 Li-ion cell.
 - Solar panel: mini 6 V, 210 mA, 1.25 W.
 
-With one 10 second release per day, average draw is about 14.003 mA. Battery-only
-runtime is roughly 250 hours, or 10.4 days, before allowing for cold weather,
-battery age, converter losses, and cutoff voltage.
+With one 3 second release per day, the relay pulse adds very little to the daily
+energy use. The sleeping controller dominates the budget:
 
-Daily use is about 336 mAh, or 1.24 Wh from a nominal 3.7 V cell. The panel can
-replace that in about one ideal peak-sun hour, but plan for 2-3 peak-sun hours
-per day in real conditions.
+- Daily use: about 336 mAh, or 1.24 Wh from a nominal 3.7 V cell.
+- Battery-only runtime: roughly 250 hours, or 10.4 days, before allowing for
+  cold weather, battery age, converter losses, and cutoff voltage.
+
+Cloudy-day prototype measurement while the MCU was sleeping:
+
+![ChronoLatch prototype cloudy-day battery current measurement](CurrentMeasurement.jpg)
+
+With the solar panel connected through the charger, the battery-side current was
+about 25 mA into the battery on a cloudy day. At that charge rate, the panel
+would put back about 25 mAh per hour of similar light. Replacing one full day of
+sleeping-controller use would therefore take about 13-14 hours at this cloudy
+rate, while brighter sun should improve the margin.
